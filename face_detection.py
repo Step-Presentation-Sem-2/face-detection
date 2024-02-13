@@ -23,7 +23,7 @@ def detect_faces(image_path):
     return image, faces
 
 
-def draw_faces(image, faces, image_path, conf_score, show_image=False, save_cropped=True, save_uncropped=False, save_image_path=None):
+def draw_faces(image, faces, image_path, conf_score, show_image=False, save_cropped=False, save_uncropped=False, save_image_path=None):
     """
     Draw bounding boxes and keypoints on the detected faces. Optionally, show the image, save the image with drawn faces,
     and save the cropped faces.
@@ -40,13 +40,22 @@ def draw_faces(image, faces, image_path, conf_score, show_image=False, save_crop
     """
     draw = ImageDraw.Draw(image)
 
-    for face in faces:
+    for i, face in enumerate(faces):
         box = face["box"]
         conf = round(face["confidence"], 2)
         if conf >= conf_score:
+            # Save individual faces cropped image here before face detection box is drawn on the image
+            if save_cropped:
+                cropped_face = image.crop((box[0], box[1], box[0] + box[2], box[1] + box[3]))
+                _, tail = os.path.split(image_path)
+                if save_image_path is None:
+                    cropped_face.save(fp=f'fd_cropped_{i}_{tail}')
+                else:
+                    cropped_face.save(fp=os.path.join(save_image_path, f'fd_cropped_{i}_{tail}'))
+
             keypoints = face["keypoints"]
             draw.rectangle(
-                [(box[0], box[1]), (box[0] + box[2], box[1] + box[3])], 8, outline="green"
+                [(box[0], box[1]), (box[0] + box[2], box[1] + box[3])], outline="green"
             )
             draw.text((box[0], box[1] - 10), "Confidence Score: " + str(conf), fill="red")
             for keypoint in keypoints.values():
@@ -57,21 +66,16 @@ def draw_faces(image, faces, image_path, conf_score, show_image=False, save_crop
 
     if show_image:
         image.show()
+
+    # only makes sense to save one uncropped image with all the faces drawn on the image
     if save_uncropped:
         _, tail = os.path.split(image_path)
         if save_image_path is None:
             image.save(fp=f'fd_uncropped_{tail}')
         else:
             image.save(fp=os.path.join(save_image_path, f'fd_uncropped_{tail}'))
-    if save_cropped:
-        cropped_face = image.crop((box[0], box[1], box[0] + box[2], box[1] + box[3]))
-        _, tail = os.path.split(image_path)
-        if save_image_path is None:
-            cropped_face.save(fp=f'fd_cropped_{tail}')
-        else:
-            image.save(fp=os.path.join(save_image_path, f'fd_cropped_{tail}'))
-    if save_image_path:
-        image.save(save_image_path)
+
+
 
 
 def face_detection(image_path, draw_faces_flag, conf_score, show_image, save_cropped, save_uncropped, save_image_path=None):

@@ -43,7 +43,7 @@ This repository contains code for detecting faces in images using MTCNN.
 
 ## Example
 ```
-python face_detection.py -i path/to/your/image.jpg -c 0.8 -d -s -p -u
+python face_detection.py -i ./face-detection/examples/src_images/AI_Gen_Face_1.png -c 0.9 -d -s -p -u -o ./face-detection/examples/output
 ```
 
 Replace `path/to/your/image.jpg` with the image file.
